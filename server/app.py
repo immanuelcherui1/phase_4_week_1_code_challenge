@@ -16,7 +16,7 @@ db.init_app(app)
 
 @app.route('/')
 def home():
-    return ''
+    return '<h2>PIZZA RESTAURANTS</h2>'
 
 @app.route('/restaurants')
 def restaurants():
