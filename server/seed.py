@@ -1,36 +1,43 @@
 from faker import Faker
 from app import db, Restaurant, Pizza, RestaurantPizza
+from random import randint, choice as rc
+
+from app import app
 
 fake = Faker()
 
-def delete_data():
-    db.session.query(RestaurantPizza).delete()
-    db.session.query(Restaurant).delete()
-    db.session.query(Pizza).delete()
-    db.session.commit()
 
-def create_restaurants(num_restaurants):
-    for _ in range(num_restaurants):
+with app.app_context():
+    # Delete existing records
+    RestaurantPizza.query.delete()
+    Restaurant.query.delete()
+    Pizza.query.delete()
+   
+    # Seed restaurants
+    restaurants = []
+    for _ in range(10):
         restaurant = Restaurant(
             name=fake.company(),
             address=fake.address()
         )
-        db.session.add(restaurant)
-    db.session.commit()
+        restaurants.append(restaurant)
+    db.session.add_all(restaurants)
 
-def create_pizzas(num_pizzas):
-    for _ in range(num_pizzas):
+    # Seed pizzas
+    pizzas = []
+    for _ in range(20):
         pizza = Pizza(
             name=fake.word().capitalize(),
             ingredients=', '.join(fake.words(5))
         )
-        db.session.add(pizza)
-    db.session.commit()
+        pizzas.append(pizza)
+    db.session.add_all(pizzas)
 
-def create_restaurant_pizzas(num_associations, num_restaurants, num_pizzas):
-    for _ in range(num_associations):
-        restaurant_id = fake.random_int(min=1, max=num_restaurants)
-        pizza_id = fake.random_int(min=1, max=num_pizzas)
+    # Seed restaurant-pizza associations
+    restaurantpizzas = []
+    for _ in range(50):
+        restaurant_id = fake.random_int(min=1, max=10)
+        pizza_id = fake.random_int(min=1, max=20)
         price = fake.pyfloat(min_value=1, max_value=30, right_digits=2)
         association = RestaurantPizza(
             restaurant_id=restaurant_id,
@@ -39,15 +46,5 @@ def create_restaurant_pizzas(num_associations, num_restaurants, num_pizzas):
         )
         db.session.add(association)
     db.session.commit()
-
-if __name__ == '__main__':
-    num_restaurants = 10
-    num_pizzas = 20
-    num_associations = 50
-
-    delete_data()
-    create_restaurants(num_restaurants)
-    create_pizzas(num_pizzas)
-    create_restaurant_pizzas(num_associations, num_restaurants, num_pizzas)
 
     print("Database seeded successfully!")
