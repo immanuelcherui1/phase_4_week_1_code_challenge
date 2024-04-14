@@ -12,19 +12,27 @@ db = SQLAlchemy(metadata=metadata)
 class Restaurant(db.Model, SerializerMixin):
     __tablename__ = 'restaurants'
 
+    serialize_rules = ('-pizzas',)
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     address = db.Column(db.String)
 
+    pizzas = db.relationship("RestaurantPizza", back_populates="restaurant")
+    
     def __repr__(self):
         return f'<Restaurant {self.name}, ${self.address if self.address else ""}>'
 
 class Pizza(db.Model, SerializerMixin):
     __tablename__ = 'pizzas'
 
+    serialize_rules = ('-restaurants',)
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True)
     ingredients = db.Column(db.String)
+
+    restaurants = db.relationship("RestaurantPizza", back_populates="pizza")
 
     def __repr__(self):
         return f'<Pizza {self.name}, {self.ingredients if self.ingredients else ""}>'
@@ -43,6 +51,9 @@ class RestaurantPizza(db.Model, SerializerMixin):
         if not (1 <= price <= 30):
             raise ValueError("Price must be between 1 and 30.")
         return price
+    
+    restaurant = db.relationship("Restaurant", back_populates="pizzas")
+    pizza = db.relationship("Pizza", back_populates="restaurants")
     
     def __repr__(self):
         return f'<RestaurantPizza {self.restaurant_id}, ${self.price}, ${self.pizza_id}>'
